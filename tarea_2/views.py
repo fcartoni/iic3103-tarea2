@@ -34,11 +34,13 @@ def get_artists(request):
         if "name" not in artist_data.keys() or "age" not in artist_data.keys():
             return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
         elif type(artist_data['name']) == str and type(artist_data['age']) == int:
-                new_artist = ArtistController.create_artist(artist_data)
-                serializer = ArtistSerializer(new_artist)
-                if new_artist == 'Already Exists':
-                    return JsonResponse({'message': 'This artist already exists'}, status=status.HTTP_409_CONFLICT)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            new_artist = ArtistController.create_artist(artist_data)
+            serializer = ArtistSerializer(new_artist)
+            if new_artist == 'Already Exists':
+                return JsonResponse({'message': 'This artist already exists'}, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
         
 @api_view(['GET', 'DELETE'])
 def get_artist_by_id(request, artist_id):
