@@ -11,21 +11,20 @@ class ArtistController(object):
 
     def create_artist(artist_data):
         id_encoded =  b64encode(artist_data['name'].encode()).decode('utf-8')
-        if len(id_encoded) > 22:
-            id_encoded = id_encoded[:22]
+        id_encoded = id_encoded[:22]
         if Artist.objects.filter(artist_id=id_encoded):
-            new_artist = 'Already Exists'
+            new_artist = None
             return new_artist
         else: 
             if "albums" not in artist_data.keys():
                 artist_data['albums'] = ''
             if "tracks" not in artist_data.keys():
                 artist_data['tracks'] = ''
-            if "self_url" not in artist_data.keys():
-                artist_data['self_url'] = ''
+            if "self" not in artist_data.keys():
+                artist_data['self'] = ''
         new_artist = Artist.objects.create(artist_id=id_encoded, name=artist_data['name'], 
                     age=artist_data['age'], albums=artist_data['albums'], tracks=artist_data['tracks'],
-                    self_url=artist_data['self_url'])
+                    self_url=artist_data['self'])
         new_artist.save()
         return new_artist
 
@@ -33,7 +32,7 @@ class ArtistController(object):
         try:
             artist = Artist.objects.get(artist_id=artist_id)
         except:
-            artist = 'Does Not Exist'
+            artist = None
         return artist
     
     def delete_artist(artist_id):
@@ -41,6 +40,6 @@ class ArtistController(object):
             artist = Artist.objects.get(artist_id=artist_id)
             artist = Artist.objects.filter(artist_id=artist_id).delete()
         except:
-            artist = 'Does Not Exist'
+            artist = None
             
         return artist

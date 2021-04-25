@@ -36,7 +36,7 @@ def get_artists(request):
         elif type(artist_data['name']) == str and type(artist_data['age']) == int:
             new_artist = ArtistController.create_artist(artist_data)
             serializer = ArtistSerializer(new_artist)
-            if new_artist == 'Already Exists':
+            if not new_artist:
                 return JsonResponse({'message': 'This artist already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -50,7 +50,7 @@ def get_artist_by_id(request, artist_id):
     
     if request.method == 'GET':
         artist = ArtistController.artist_by_id(artist_id)
-        if artist == 'Does Not Exist':
+        if not artist:
             return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND) 
         else:
             serializer = ArtistSerializer(artist, many=False)
@@ -58,7 +58,7 @@ def get_artist_by_id(request, artist_id):
 
     elif request.method == 'DELETE':
         artist = ArtistController.delete_artist(artist_id)
-        if artist == 'Does Not Exist':
+        if not artist:
             return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND) 
         else:
             return JsonResponse({'message': 'Artist deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
