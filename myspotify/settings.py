@@ -25,7 +25,7 @@ SECRET_KEY = '%*@7d-a-)876tzo!rojikq2nq&su)c&o#o=yc!tpwwhnvwux=m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['iic3103-tarea2-fcartoni.herokuapp.com']
+ALLOWED_HOSTS = ['iic3103-tarea2-fcartoni.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [

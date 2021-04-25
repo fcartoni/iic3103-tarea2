@@ -10,6 +10,7 @@ django = "*"
 dj-database-url = "*"
 gunicorn = "*"
 psycopg2 = "*"
+djangorestframework = "*"
 
 [requires]
 python_version = "3.8"
