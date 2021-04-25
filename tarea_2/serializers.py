@@ -23,5 +23,5 @@ class ArtistSerializer(serializers.ModelSerializer):
         return obj.artist_id
 
     def generate_self(self, id):
-        return 'https://iic3103-tarea2-fcartoni.herokuapp.com/artists/{id}'
+        return f'https://iic3103-tarea2-fcartoni.herokuapp.com/artists/{id}'
 
