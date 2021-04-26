@@ -58,7 +58,9 @@ class AlbumController(object):
         return albums_by_artist
 
     def create_album(album_data, artist_id):
-        id_encoded =  b64encode(album_data['name'].encode()).decode('utf-8')
+        name = album_data['name']
+        to_encode = f'{name}:{artist_id}'
+        id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Album.objects.filter(album_id=id_encoded):
             new_album = None
@@ -96,3 +98,55 @@ class TrackController(object):
     def get_all_tracks():
         tracks = Track.objects.all()
         return tracks
+
+    def get_tracks_by_id(track_id):
+        track = Track.objects.filter(track_id=track_id)
+        return track
+
+    def obtain_tracks_by_album(album):
+        tracks_by_album = Track.objects.filter(album=album) #no va a encontrar eso, artist es un objeto
+        return tracks_by_album
+    
+    def create_track(track_data, album_id):
+        name = track_data['name']
+        to_encode = f'{name}:{album_id}'
+        id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
+        id_encoded = id_encoded[:22]
+        if Track.objects.filter(track_id=id_encoded):
+            new_track = None
+            return new_track
+        else:
+            if "artist" not in track_data.keys():
+                track_data['artist'] = ''
+            if "album" not in track_data.keys():
+                track_data['album'] = ''
+            if "self" not in track_data.keys():
+                track_data['self'] = ''
+            track_data['times_played'] = 0 #modificar valor
+        new_track = Track.objects.create(track_id=id_encoded, name=track_data['name'], 
+                    duration=track_data['duration'], times_played=track_data['times_played'], 
+                    artist_url=track_data['artist'], album=track_data['album_id'], album_url=track_data['album'],
+                    self_url=track_data['self'])
+        new_track.save()
+        return new_track
+
+    def obtain_tracks_by_artist(artist): #yo tengo el url del artist y el album nada mas
+        tracks_by_artist = Track.objects.filter(artist=artist)
+        return tracks_by_artist
+    
+    def delete_track(track_id):
+        try:
+            track = Track.objects.get(track_id=track_id)
+            track = Track.objects.filter(track_id=track_id).delete()
+        except:
+            track = None
+        return track
+
+    def add_times_played(track_id):
+        try:
+            track = Track.objects.get(track_id=track_id)
+            track.times_played += 1
+            track.save()
+        except:
+            track = None
+        return track

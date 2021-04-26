@@ -57,11 +57,18 @@ def get_artist_by_id(request, artist_id):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'DELETE':
-        artist = ArtistController.delete_artist(artist_id)
+        artist = ArtistController.delete_artist(artist_id) #se borra el artista y sus albumes
         if not artist:
             return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND) 
         else:
-            return JsonResponse({'message': 'Artist deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+            albums = AlbumController.obtain_album_by_artist(artist)
+            serializers_album = []
+            for album in albums:
+                tracks_by_album = TrackController.obtain_tracks_by_album(album)
+                serializer = TrackSerializer(tracks_by_album, many=True)
+                serializers.append(serializer.data)
+                track_deleted = TrackController.delete_track(album=serializer.album)
+        return JsonResponse({'message': 'Artist deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET', 'POST']) #/artist/artist_id/album
 def get_albums_by_artist(request, artist_id):
@@ -121,7 +128,7 @@ def get_album_by_id(request, album_id): #/album/album_id
             serializer = AlbumSerializer(album_by_id, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-    elif request.method == 'DELETE':
+    elif request.method == 'DELETE': #delete album with all its tracks
         album = AlbumController.delete_album(album_id)
         if not album:
             return JsonResponse({'message': 'This album does not exist'}, status=status.HTTP_404_NOT_FOUND) 
@@ -140,57 +147,141 @@ def get_tracks(request): # /tracks
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET', 'POST'])
-def get_tracks_by_album_id(request): # /albums/<album_id>/tracks
-    pass
+def get_tracks_by_album_id(request, album_id): # /albums/<album_id>/tracks
+
+    if request.method not in ('GET', 'POST'):
+        return HttpResponse(status=405)
+    
+    elif request.method == 'GET': # chequear que exista el album
+        album = AlbumController.obtain_album_by_id(album_id)
+        if not album:
+            return JsonResponse({'message': 'This album does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            tracks_by_album = TrackController.obtain_tracks_by_album(album)
+            serializer = TrackSerializer(tracks_by_album, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'POST': #chequear que exista el album  y que la track no exista y q me entregue lo acampos
+
+        track_data = request.data
+        album = AlbumController.obtain_album_by_id(album_id)
+        if not album:
+            return HttpResponse(status=422) #unprocessable entity
+        elif "name" not in track_data.keys() or "duration" not in track_data.keys():
+            return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+        elif type(track_data['name']) == str and type(track_data['duration']) == float:
+            track_data['album_id'] = album
+            new_track = TrackController.create_track(track_data, album_id)
+            serializer = TrackSerializer(new_track)
+            if not new_track:
+                return JsonResponse({'message': 'This track already exists'}, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 @api_view(['GET'])
-def get_tracks_by_artist_id(request): # /artist/<artist_id>/tracks
-    pass
+def get_tracks_by_artist_id(request, artist_id): # /artist/<artist_id>/tracks
+    
+    if request.method not in ('GET'):
+        return HttpResponse(status=405)
+    
+    elif request.method == 'GET': #revisar q existe el artist
+        artist = ArtistController.artist_by_id(artist_id)
+        if not artist:
+            return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            serializers = []
+            albums = AlbumController.obtain_album_by_artist(artist)
+            for album in albums:
+                tracks_by_album = TrackController.obtain_tracks_by_album(album)
+                serializer = TrackSerializer(tracks_by_album, many=True)
+                serializers.append(serializer.data)
+            #tracks_by_artist = TrackController.obtain_tracks_by_artist(artist)
+            list_final = []
+            for serializer in serializers:
+                for s in serializer:
+                    list_final.append(s)
+            return Response(list_final, status=status.HTTP_200_OK)
 
 @api_view(['GET', 'DELETE'])
-def get_track_by_id(request): # /tracks/track_id
-    pass
-
-# @api_view(['POST'])
-# def create_artist(request):
-#         artist_data = JSONParser().parse(request)
-#         artist_serializer = ArtistSerializer(data=tutorial_data)
-#         if artist_serializer.is_valid():
-#             artist_serializer.save()
-#             return JsonResponse(tutorial_serializer.data, status=status.HTTP_201_CREATED) 
-#         return JsonResponse(tutorial_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#         #return JsonResponse(tutorial_serializer.errors, status=status.HTTP_409_CONFLICT)
-
-
-# class ArtistView(APIView):
-#     serializer_class = ArtistSerializer
-
-#     def get_all_artists(self):
-#         artists = Artist.objects.all()
-#         return artists
+def get_track_by_id(request, track_id): # /tracks/track_id
     
-#     def get_artist_by_id(self, artist_id):
-#         try: 
-#             artist = Artist.objects.get(artist_id=artist_id) 
-#         except Artist.DoesNotExist: 
-#             return JsonResponse({'message': 'The artist does not exist'}, status=status.HTTP_404_NOT_FOUND) 
- 
+    if request.method not in ('GET', 'DELETE'):
+        return HttpResponse(status=405)
+    
+    elif request.method == 'GET':
+        track = TrackController.get_tracks_by_id(track_id)
+        if not track:
+            return JsonResponse({'message': 'This track does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            serializer = TrackSerializer(track, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-#     def get(self, request, *args, **kwargs):
-#         artist_id = request.query_params()
-#         artists = self.get_all_artists()
-#         serializer = ArtistSerializer(artists, many=True)
-#         return Response(serializer.data)
+    elif request.method == 'DELETE':
+        track = TrackController.delete_track(track_id)
+        if not track:
+            return JsonResponse({'message': 'This track does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        else:
+            return JsonResponse({'message': 'Track deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
 
-#     def post(self, request, *args, **kwargs):
-#         artist_data = request.data
-#         id_encoded =  b64encode(artist_data['name'].encode()).decode('utf-8')
-#         if len(id_encoded) > 22:
-#             id_encoded = id_encoded[:22]
-#         new_artist = Artist.objects.create(artist_id=id_encoded, name=artist_data['name'], 
-#         age=artist_data['age'], albums=artist_data['albums'], tracks=artist_data['tracks'], self_url=artist_data['self_url'])
+@api_view(['PUT'])
+def play_artist_tracks(request, artist_id):
+    
+    if request.method not in ('PUT'):
+        return HttpResponse(status=405)
+    
+    else:
+        artist = ArtistController.artist_by_id(artist_id=artist_id)
+        if not artist:
+            return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            tracks = []
+            albums = AlbumController.obtain_album_by_artist(artist)
+            for album in albums:
+                tracks_by_album = TrackController.obtain_tracks_by_album(album)
+                track = TrackSerializer(tracks_by_album, many=True)
+                tracks.append(track.data)
+            list_final = []
+            for track in tracks:
+                for t in track:
+                    list_final.append(t)
+            for l in list_final:
+                track_added = TrackController.add_times_played(l['id'])
+                serializer = TrackSerializer(track_added, many=False)                
+            return HttpResponse(status=200)
+        
+@api_view(['PUT'])
+def play_album_tracks(request, album_id): #que exista el album
+    
+    if request.method not in ('PUT'):
+        return HttpResponse(status=405)
+    
+    else:
+        album = AlbumController.obtain_album_by_id(album_id=album_id)
+        if not album:
+            return JsonResponse({'message': 'This album does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            tracks = TrackController.obtain_tracks_by_album(album)
+            for track in tracks:
+                track_added = TrackController.add_times_played(track.track_id)
+                serializer = TrackSerializer(track_added, many=False)
+            return HttpResponse(status=200)
 
-#         new_artist.save()
-#         serializer = ArtistSerializer(new_artist)
+@api_view(['PUT'])
+def play_track(request, track_id): #ver q exista si no 404
+    
+    if request.method not in ('PUT'):
+        return HttpResponse(status=405)
+    
+    else:
+        track = TrackController.get_tracks_by_id(track_id)
+        if not track:
+            return JsonResponse({'message': 'This track does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            track_added = TrackController.add_times_played(track_id)
+            serializer = TrackSerializer(track_added, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
-#         return Response(serializer.data)
+
