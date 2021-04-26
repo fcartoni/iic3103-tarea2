@@ -3,9 +3,9 @@ from django.http import HttpResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from . models import Artist
-from . serializers import ArtistSerializer
-from . controllers import ArtistController
+from . models import Artist, Album, Track
+from . serializers import ArtistSerializer, AlbumSerializer, TrackSerializer
+from . controllers import ArtistController, AlbumController, TrackController
 
 from django.http.response import JsonResponse
 from rest_framework.parsers import JSONParser 
@@ -63,6 +63,93 @@ def get_artist_by_id(request, artist_id):
         else:
             return JsonResponse({'message': 'Artist deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
 
+@api_view(['GET', 'POST']) #/artist/artist_id/album
+def get_albums_by_artist(request, artist_id):
+
+    if request.method not in ('GET', 'POST'):
+        return HttpResponse(status=405)
+
+    elif request.method == 'GET':
+        artist = ArtistController.artist_by_id(artist_id)
+        if not artist:
+            return JsonResponse({'message': 'This artist does not exist'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            albums_by_artist = AlbumController.obtain_album_by_artist(artist)
+            serializer = AlbumSerializer(albums_by_artist, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'POST': # fijarme q esten los campos, q no exista el album y si no existe el artista return 422
+        album_data = request.data
+        artist = ArtistController.artist_by_id(artist_id)
+        if not artist:
+            return HttpResponse(status=422)
+        elif "name" not in album_data.keys() or "genre" not in album_data.keys():
+            return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+        elif type(album_data['name']) == str and type(album_data['genre']) == str:
+            album_data['artist_id'] = artist
+            new_album = AlbumController.create_album(album_data, artist_id)
+            serializer = AlbumSerializer(new_album)
+            if not new_album:
+                return JsonResponse({'message': 'This album already exists'}, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+@api_view(['GET'])
+def get_albums(request): # /albums
+
+    if request.method not in ('GET'):
+        return HttpResponse(status=405)
+
+    if request.method == 'GET':
+        albums = AlbumController.get_all_albums()
+        serializer = AlbumSerializer(albums, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'DELETE'])
+def get_album_by_id(request, album_id): #/album/album_id
+
+    if request.method not in ('GET', 'DELETE'):
+        return HttpResponse(status=405)
+
+    elif request.method == 'GET':
+        album_by_id = AlbumController.obtain_album_by_id(album_id)
+        if not album_by_id:
+            return JsonResponse({'message': 'This album does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        else:
+            serializer = AlbumSerializer(album_by_id, many=False)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == 'DELETE':
+        album = AlbumController.delete_album(album_id)
+        if not album:
+            return JsonResponse({'message': 'This album does not exist'}, status=status.HTTP_404_NOT_FOUND) 
+        else:
+            return JsonResponse({'message': 'Album deleted successfully!'}, status=status.HTTP_204_NO_CONTENT)
+        
+@api_view(['GET'])
+def get_tracks(request): # /tracks
+
+    if request.method not in ('GET'):
+        return HttpResponse(status=405)
+
+    elif request.method == 'GET':
+        tracks = TrackController.get_all_tracks()
+        serializer = TrackSerializer(tracks, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'POST'])
+def get_tracks_by_album_id(request): # /albums/<album_id>/tracks
+    pass
+
+@api_view(['GET'])
+def get_tracks_by_artist_id(request): # /artist/<artist_id>/tracks
+    pass
+
+@api_view(['GET', 'DELETE'])
+def get_track_by_id(request): # /tracks/track_id
+    pass
 
 # @api_view(['POST'])
 # def create_artist(request):
