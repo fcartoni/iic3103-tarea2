@@ -64,7 +64,7 @@ class AlbumController(object):
         id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Album.objects.filter(album_id=id_encoded):
-            existing = Album.objects.filter(album_id=id_encoded)
+            existing = Album.objects.get(album_id=id_encoded)
             new_album = None
             return existing, False
         else:
@@ -102,7 +102,7 @@ class TrackController(object):
         return tracks
 
     def get_tracks_by_id(track_id):
-        track = Track.objects.filter(track_id=track_id)
+        track = Track.objects.get(track_id=track_id)
         return track
 
     def obtain_tracks_by_album(album):
@@ -115,7 +115,7 @@ class TrackController(object):
         id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Track.objects.filter(track_id=id_encoded):
-            existing = Track.objects.filter(track_id=id_encoded)
+            existing = Track.objects.get(track_id=id_encoded)
             new_track = None
             return existing, False
         else:
