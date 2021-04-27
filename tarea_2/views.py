@@ -37,7 +37,8 @@ def get_artists(request):
             new_artist = ArtistController.create_artist(artist_data)
             serializer = ArtistSerializer(new_artist)
             if not new_artist:
-                return HttpResponse(status=409)
+                serializer = ArtistSerializer(existing)
+                return Response(serializer.data, status=status.HTTP_409_CONFLICT)
                 #return JsonResponse({'message': 'This artist already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -103,7 +104,8 @@ def get_albums_by_artist(request, artist_id):
             new_album = AlbumController.create_album(album_data, artist_id)
             serializer = AlbumSerializer(new_album)
             if not new_album:
-                return HttpResponse(status=409)
+                serializer = AlbumSerializer(existing)
+                return Response(serializer.data, status=status.HTTP_409_CONFLICT)
                 #return JsonResponse({'message': 'This album already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -187,7 +189,8 @@ def get_tracks_by_album_id(request, album_id): # /albums/<album_id>/tracks
             new_track = TrackController.create_track(track_data, album_id)
             serializer = TrackSerializer(new_track)
             if not new_track:
-                return HttpResponse(status=409)
+                serializer = TrackSerializer(existing)
+                return Response(serializer.data, status=status.HTTP_409_CONFLICT)
                 #return JsonResponse({'message': 'This track already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:

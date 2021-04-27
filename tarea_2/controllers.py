@@ -13,8 +13,9 @@ class ArtistController(object):
         id_encoded =  b64encode(artist_data['name'].encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Artist.objects.filter(artist_id=id_encoded):
+            existing = Artist.objects.get(artist_id=id_encoded)
             new_artist = None
-            return new_artist
+            return existing
         else: 
             if "albums" not in artist_data.keys():
                 artist_data['albums'] = ''
@@ -63,8 +64,9 @@ class AlbumController(object):
         id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Album.objects.filter(album_id=id_encoded):
+            existing = Album.objects.filter(album_id=id_encoded)
             new_album = None
-            return new_album
+            return existing
         else:
             if "artist" not in album_data.keys():
                 album_data['artist'] = ''
@@ -113,8 +115,9 @@ class TrackController(object):
         id_encoded =  b64encode(to_encode.encode()).decode('utf-8')
         id_encoded = id_encoded[:22]
         if Track.objects.filter(track_id=id_encoded):
+            existing = Track.objects.filter(track_id=id_encoded)
             new_track = None
-            return new_track
+            return existing
         else:
             if "artist" not in track_data.keys():
                 track_data['artist'] = ''
