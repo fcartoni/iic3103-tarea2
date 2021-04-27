@@ -230,12 +230,15 @@ def get_track_by_id(request, track_id): # /tracks/track_id
         return HttpResponse(status=405)
     
     elif request.method == 'GET':
-        track = TrackController.get_tracks_by_id(track_id)
+        try:
+            track = TrackController.get_tracks_by_id(track_id)
+        except:
+            track = None
         if not track:
             return HttpResponse(status=404)
             #return JsonResponse({'message': 'This track does not exist'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            serializer = TrackSerializer(track, many=True)
+            serializer = TrackSerializer(track, many=False)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'DELETE':

@@ -102,7 +102,10 @@ class TrackController(object):
         return tracks
 
     def get_tracks_by_id(track_id):
-        track = Track.objects.get(track_id=track_id)
+        try:
+            track = Track.objects.get(track_id=track_id)
+        except:
+            track = None
         return track
 
     def obtain_tracks_by_album(album):
