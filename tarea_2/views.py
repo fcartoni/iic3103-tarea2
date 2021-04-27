@@ -34,11 +34,11 @@ def get_artists(request):
         if "name" not in artist_data.keys() or "age" not in artist_data.keys():
             return HttpResponse(status=400)
         elif type(artist_data['name']) == str and type(artist_data['age']) == int:
-            new_artist = ArtistController.create_artist(artist_data)
+            new_artist, create = ArtistController.create_artist(artist_data)
             serializer = ArtistSerializer(new_artist)
-            if not new_artist:
-                serializer = ArtistSerializer(existing)
-                return Response(serializer.data, status=status.HTTP_409_CONFLICT)
+            if not create:
+                serializer = ArtistSerializer(new_artist)
+                return Response(serializer.data, status=409)
                 #return JsonResponse({'message': 'This artist already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
@@ -101,10 +101,10 @@ def get_albums_by_artist(request, artist_id):
             #return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
         elif type(album_data['name']) == str and type(album_data['genre']) == str:
             album_data['artist_id'] = artist
-            new_album = AlbumController.create_album(album_data, artist_id)
+            new_album, create = AlbumController.create_album(album_data, artist_id)
             serializer = AlbumSerializer(new_album)
-            if not new_album:
-                serializer = AlbumSerializer(existing)
+            if not create:
+                serializer = AlbumSerializer(new_album)
                 return Response(serializer.data, status=status.HTTP_409_CONFLICT)
                 #return JsonResponse({'message': 'This album already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -186,10 +186,10 @@ def get_tracks_by_album_id(request, album_id): # /albums/<album_id>/tracks
             #return JsonResponse({'message': 'Bad Request'}, status=status.HTTP_400_BAD_REQUEST)
         elif type(track_data['name']) == str and type(track_data['duration']) == float:
             track_data['album_id'] = album
-            new_track = TrackController.create_track(track_data, album_id)
+            new_track, create = TrackController.create_track(track_data, album_id)
             serializer = TrackSerializer(new_track)
-            if not new_track:
-                serializer = TrackSerializer(existing)
+            if not create:
+                serializer = TrackSerializer(new_track)
                 return Response(serializer.data, status=status.HTTP_409_CONFLICT)
                 #return JsonResponse({'message': 'This track already exists'}, status=status.HTTP_409_CONFLICT)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

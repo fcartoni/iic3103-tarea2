@@ -15,7 +15,7 @@ class ArtistController(object):
         if Artist.objects.filter(artist_id=id_encoded):
             existing = Artist.objects.get(artist_id=id_encoded)
             new_artist = None
-            return existing
+            return existing, False
         else: 
             if "albums" not in artist_data.keys():
                 artist_data['albums'] = ''
@@ -27,7 +27,7 @@ class ArtistController(object):
                     age=artist_data['age'], albums=artist_data['albums'], tracks=artist_data['tracks'],
                     self_url=artist_data['self'])
         new_artist.save()
-        return new_artist
+        return new_artist, True
 
     def artist_by_id(artist_id):
         try:
@@ -66,7 +66,7 @@ class AlbumController(object):
         if Album.objects.filter(album_id=id_encoded):
             existing = Album.objects.filter(album_id=id_encoded)
             new_album = None
-            return existing
+            return existing, False
         else:
             if "artist" not in album_data.keys():
                 album_data['artist'] = ''
@@ -78,7 +78,7 @@ class AlbumController(object):
                     genre=album_data['genre'], artist=album_data['artist_id'], artist_url=album_data['artist'], tracks_url=album_data['tracks'],
                     self_url=album_data['self'])
         new_album.save()
-        return new_album
+        return new_album, True
     
     def obtain_album_by_id(album_id):
         try:
@@ -117,7 +117,7 @@ class TrackController(object):
         if Track.objects.filter(track_id=id_encoded):
             existing = Track.objects.filter(track_id=id_encoded)
             new_track = None
-            return existing
+            return existing, False
         else:
             if "artist" not in track_data.keys():
                 track_data['artist'] = ''
@@ -131,7 +131,7 @@ class TrackController(object):
                     artist_url=track_data['artist'], album=track_data['album_id'], album_url=track_data['album'],
                     self_url=track_data['self'])
         new_track.save()
-        return new_track
+        return new_track, True
 
     def obtain_tracks_by_artist(artist): #yo tengo el url del artist y el album nada mas
         tracks_by_artist = Track.objects.filter(artist=artist)
